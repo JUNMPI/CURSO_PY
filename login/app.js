@@ -53,6 +53,13 @@ const togglePass = document.getElementById('toggle-pass');
 const eyeOff     = document.getElementById('eye-off');
 const eyeOn      = document.getElementById('eye-on');
 
+// Spatial UI variables
+const stepEmail    = document.getElementById('step-email');
+const stepPassword = document.getElementById('step-password');
+const btnNext      = document.getElementById('btn-next');
+const btnBack      = document.getElementById('btn-back');
+const displayEmail = document.getElementById('display-email');
+
 
 /* ═══════════════════════════════════════════════════════
    VALIDACIÓN
@@ -78,30 +85,16 @@ function applyFieldState(input, msgEl, state, msg = '') {
   }
 }
 
-function validateForm() {
-  let ok = true;
-
-  if (!emailInput.value.trim()) {
-    applyFieldState(emailInput, emailMsg, 'invalid', 'El correo es obligatorio.');
-    ok = false;
-  } else if (!isValidEmail(emailInput.value.trim())) {
-    applyFieldState(emailInput, emailMsg, 'invalid', 'Ingresa un correo válido (ej: nombre@fpf.com.pe).');
-    ok = false;
-  } else {
-    applyFieldState(emailInput, emailMsg, 'valid');
-  }
-
+function validatePassword() {
   if (!passInput.value) {
     applyFieldState(passInput, passMsg, 'invalid', 'La contraseña es obligatoria.');
-    ok = false;
+    return false;
   } else if (passInput.value.length < 6) {
     applyFieldState(passInput, passMsg, 'invalid', 'La contraseña debe tener al menos 6 caracteres.');
-    ok = false;
-  } else {
-    applyFieldState(passInput, passMsg, 'valid');
+    return false;
   }
-
-  return ok;
+  applyFieldState(passInput, passMsg, 'valid');
+  return true;
 }
 
 
@@ -165,11 +158,62 @@ function setLoading(on) {
 /* ═══════════════════════════════════════════════════════
    ENVÍO DEL FORMULARIO
 ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   FLUJO DE DOS PASOS (DYNAMIC ISLAND)
+═══════════════════════════════════════════════════════ */
+btnNext.addEventListener('click', () => {
+  const val = emailInput.value.trim();
+  if (!val || !isValidEmail(val)) {
+    applyFieldState(emailInput, emailMsg, 'invalid', 'Ingresa un correo válido primero.');
+    return;
+  }
+  
+  // Animar transición al paso 2
+  displayEmail.textContent = val;
+  stepEmail.classList.remove('active');
+  
+  setTimeout(() => {
+    stepEmail.style.display = 'none';
+    stepPassword.style.display = 'flex';
+    
+    // Pequeño delay para que el display:flex renderice antes de la opacidad
+    setTimeout(() => {
+      stepPassword.classList.add('active');
+      passInput.focus();
+    }, 20);
+  }, 400); // match css transition
+});
+
+btnBack.addEventListener('click', () => {
+  stepPassword.classList.remove('active');
+  
+  setTimeout(() => {
+    stepPassword.style.display = 'none';
+    stepEmail.style.display = 'flex';
+    
+    setTimeout(() => {
+      stepEmail.classList.add('active');
+      emailInput.focus();
+    }, 20);
+  }, 400);
+});
+
+
+/* ═══════════════════════════════════════════════════════
+   ENVÍO DEL FORMULARIO
+═══════════════════════════════════════════════════════ */
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  if (!validateForm()) {
-    showToast('Corrige los campos señalados.', 'error', '⚠');
+  // Si damos enter en el paso 1, pasamos al paso 2
+  if (stepEmail.classList.contains('active')) {
+    btnNext.click();
+    return;
+  }
+
+  // Paso 2: Validar contraseña
+  if (!validatePassword()) {
+    showToast('Corrige tu contraseña.', 'error', '⚠');
     return;
   }
 
@@ -180,7 +224,13 @@ form.addEventListener('submit', async (e) => {
       email:    emailInput.value.trim(),
       password: passInput.value,
     });
-    showToast('Acceso concedido. Redirigiendo...', 'success', '✓');
+    
+    // Transformación del botón estilo Apple FaceID
+    btnSubmit.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: fadeUp 0.3s ease"><polyline points="20 6 9 17 4 12"/></svg>`;
+    btnSubmit.style.background = 'rgba(255,255,255,0.1)';
+    btnSubmit.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+    
+    showToast('Autenticación Biométrica Exitosa', 'success', '✓');
   } catch (err) {
     showToast(err.message || 'Credenciales incorrectas.', 'error', '✕');
     applyFieldState(passInput, passMsg, 'invalid', 'Verifica tu contraseña.');
@@ -207,42 +257,72 @@ function simulateServerCall(creds) {
 
 
 /* ═══════════════════════════════════════════════════════
-   CURSOR SPOTLIGHT — Resplandor que sigue al mouse
-   (Solo desktop, efecto premium moderno)
+   SPATIAL 3D CARD TILT (Efecto Apple TV)
 ═══════════════════════════════════════════════════════ */
 if (window.matchMedia('(pointer: fine)').matches) {
-  const panel = document.querySelector('.panel-visual');
+  const wrapper = document.getElementById('auth-3d');
+  const edgeLight = document.querySelector('.edge-light');
+  
+  if (wrapper && edgeLight) {
+    wrapper.addEventListener('mousemove', (e) => {
+      const rect = wrapper.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const xPct = x / rect.width;
+      const yPct = y / rect.height;
+      
+      // Rotación suave
+      const rotX = (yPct - 0.5) * -20;
+      const rotY = (xPct - 0.5) * 20;
+      
+      wrapper.style.setProperty('--rot-x', `${rotX}deg`);
+      wrapper.style.setProperty('--rot-y', `${rotY}deg`);
+      
+      // Borde de luz reactivo
+      const lightX = xPct * 100;
+      const lightY = yPct * 100;
+      edgeLight.style.setProperty('--light-x', `${lightX}%`);
+      edgeLight.style.setProperty('--light-y', `${lightY}%`);
+    });
+    
+    wrapper.addEventListener('mouseleave', () => {
+      wrapper.style.setProperty('--rot-x', `0deg`);
+      wrapper.style.setProperty('--rot-y', `0deg`);
+      edgeLight.style.setProperty('--light-x', `50%`);
+      edgeLight.style.setProperty('--light-y', `-20%`);
+    });
+  }
+}
 
-  panel.addEventListener('mousemove', (e) => {
-    const rect = panel.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    panel.style.setProperty('--spot-x', `${x}px`);
-    panel.style.setProperty('--spot-y', `${y}px`);
+/* ═══════════════════════════════════════════════════════
+   CURSOR SPOTLIGHT — Resplandor que sigue al mouse
+   (Performance optimizado con requestAnimationFrame)
+═══════════════════════════════════════════════════════ */
+if (window.matchMedia('(pointer: fine)').matches) {
+  const layout = document.querySelector('.layout');
+  
+  const spot = document.createElement('div');
+  spot.className = 'cursor-spot';
+  spot.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(spot);
 
-    if (!panel.querySelector('.cursor-spot')) {
-      const spot = document.createElement('div');
-      spot.className = 'cursor-spot';
-      spot.setAttribute('aria-hidden', 'true');
-      spot.style.cssText = `
-        position: absolute;
-        width: 350px; height: 350px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(228,29,37,0.12) 0%, transparent 70%);
-        pointer-events: none;
-        z-index: 1;
-        transition: left 0.15s ease-out, top 0.15s ease-out;
-      `;
-      panel.appendChild(spot);
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let isMoving = false;
+
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (!isMoving) {
+      isMoving = true;
+      requestAnimationFrame(updateSpotlight);
     }
-
-    const spot = panel.querySelector('.cursor-spot');
-    spot.style.left = `${x - 175}px`;
-    spot.style.top  = `${y - 175}px`;
   });
 
-  panel.addEventListener('mouseleave', () => {
-    const spot = panel.querySelector('.cursor-spot');
-    if (spot) spot.remove();
-  });
+  function updateSpotlight() {
+    document.body.style.setProperty('--spot-x', `${mouseX}px`);
+    document.body.style.setProperty('--spot-y', `${mouseY}px`);
+    isMoving = false;
+  }
 }
