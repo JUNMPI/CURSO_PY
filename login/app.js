@@ -60,6 +60,10 @@ const btnNext      = document.getElementById('btn-next');
 const btnBack      = document.getElementById('btn-back');
 const displayEmail = document.getElementById('display-email');
 
+/* ═══════════════════════════════════════════════════════
+   (El flip de la tarjeta ahora es por CSS Hover)
+═══════════════════════════════════════════════════════ */
+
 
 /* ═══════════════════════════════════════════════════════
    VALIDACIÓN
@@ -264,13 +268,23 @@ if (window.matchMedia('(pointer: fine)').matches) {
   const edgeLight = document.querySelector('.edge-light');
   
   if (wrapper && edgeLight) {
+    let tX = 0, tY = 0;
+    let isUpdating3D = false;
+
     wrapper.addEventListener('mousemove', (e) => {
       const rect = wrapper.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      tX = e.clientX - rect.left;
+      tY = e.clientY - rect.top;
       
-      const xPct = x / rect.width;
-      const yPct = y / rect.height;
+      if (!isUpdating3D) {
+        isUpdating3D = true;
+        requestAnimationFrame(() => update3D(rect.width, rect.height));
+      }
+    });
+
+    function update3D(width, height) {
+      const xPct = tX / width;
+      const yPct = tY / height;
       
       // Rotación suave
       const rotX = (yPct - 0.5) * -20;
@@ -284,7 +298,9 @@ if (window.matchMedia('(pointer: fine)').matches) {
       const lightY = yPct * 100;
       edgeLight.style.setProperty('--light-x', `${lightX}%`);
       edgeLight.style.setProperty('--light-y', `${lightY}%`);
-    });
+      
+      isUpdating3D = false;
+    }
     
     wrapper.addEventListener('mouseleave', () => {
       wrapper.style.setProperty('--rot-x', `0deg`);
