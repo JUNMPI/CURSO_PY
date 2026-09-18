@@ -375,6 +375,13 @@ body {
   justify-content: flex-end;
   z-index: 2;
   transform: translateZ(20px);
+  opacity: 1;
+  transition: opacity 0s 0.2s; /* Workaround bug Chromium backdrop-filter */
+}
+
+.auth-3d-wrapper:hover .flip-card-front,
+.auth-3d-wrapper:focus-within .flip-card-front {
+  opacity: 0;
 }
 
 .front-image {
@@ -394,6 +401,13 @@ body {
 
 .flip-card-back {
   transform: rotateY(180deg) translateZ(20px);
+  opacity: 0;
+  transition: opacity 0s 0.2s; /* Previene el bleed del blur hacia adelante */
+}
+
+.auth-3d-wrapper:hover .flip-card-back,
+.auth-3d-wrapper:focus-within .flip-card-back {
+  opacity: 1;
 }
 
 .auth-container {
