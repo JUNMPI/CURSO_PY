@@ -1,20 +1,12 @@
 /* ═══════════════════════════════════════════════════════
-   TOKENS DE DISEÑO — FPF 2027
+   LOGIN — FPF 2027 (Dark Theme)
+   ───────────────────────────────────────────────────────
+   Tokens compartidos ahora se linkean en el HTML.
+   Aquí solo van los overrides del tema oscuro.
 ═══════════════════════════════════════════════════════ */
-*, *::before, *::after {
-  margin: 0; padding: 0; box-sizing: border-box;
-}
 
 :root {
-  /* Rojo oficial FPF */
-  --fpf:         #E41D25;
-  --fpf-dark:    #B81820;
-  --fpf-deeper:  #8B1015;
-  --fpf-light:   #FF4D55;
-  --fpf-glow:    rgba(228, 29, 37, 0.35);
-  --fpf-subtle:  rgba(228, 29, 37, 0.08);
-
-  /* Neutros */
+  /* ── Tema oscuro (solo login) ── */
   --bg:          #070709;
   --surface:     rgba(15, 15, 18, 0.45);
   --border:      rgba(255, 255, 255, 0.08);
@@ -23,25 +15,6 @@
   --txt-2:       #D4D4D8;
   --txt-3:       #A1A1AA;
   --txt-4:       #71717A;
-
-  /* Tipografía */
-  --sans:        'Inter', system-ui, -apple-system, sans-serif;
-  --display:     'Playfair Display', Georgia, serif;
-
-  /* Movimiento */
-  --ease:        cubic-bezier(.22, 1, .36, 1);
-  --spring:      cubic-bezier(.34, 1.56, .64, 1);
-  --speed:       0.25s;
-  --speed-slow:  0.5s;
-}
-
-/* ═══════════════════════════════════════════════════════
-   BASE
-═══════════════════════════════════════════════════════ */
-html {
-  height: 100%;
-  font-family: var(--sans);
-  -webkit-font-smoothing: antialiased;
 }
 
 body {

@@ -94,7 +94,7 @@ function validatePassword() {
     applyFieldState(passInput, passMsg, 'invalid', 'La contraseña es obligatoria.');
     return false;
   } else if (passInput.value.length < 6) {
-    applyFieldState(passInput, passMsg, 'invalid', 'La contraseña debe tener al menos 6 caracteres.');
+    applyFieldState(passInput, passMsg, 'invalid', ENV.MSG.PASS_MIN_LENGTH);
     return false;
   }
   applyFieldState(passInput, passMsg, 'valid');
@@ -110,7 +110,7 @@ emailInput.addEventListener('input', () => {
   if (!val) { applyFieldState(emailInput, emailMsg, 'clear'); return; }
   applyFieldState(emailInput, emailMsg,
     isValidEmail(val) ? 'valid' : 'invalid',
-    'Ingresa un correo válido (ej: nombre@fpf.com.pe).'
+    ENV.MSG.EMAIL_INVALID
   );
 });
 
@@ -118,8 +118,8 @@ passInput.addEventListener('input', () => {
   const val = passInput.value;
   if (!val) { applyFieldState(passInput, passMsg, 'clear'); return; }
   applyFieldState(passInput, passMsg,
-    val.length >= 6 ? 'valid' : 'invalid',
-    'La contraseña debe tener al menos 6 caracteres.'
+    val.length >= ENV.VALIDATION.MIN_PASS_LENGTH ? 'valid' : 'invalid',
+    ENV.MSG.PASS_MIN_LENGTH
   );
 });
 
@@ -146,7 +146,7 @@ function showToast(message, type = 'success', icon = '') {
   if (toastTimer) clearTimeout(toastTimer);
   toast.innerHTML = `${icon ? `<span>${icon}</span>` : ''} ${message}`;
   toast.className = `toast toast--${type} show`;
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), ENV.TIMING.TOAST_DURATION);
 }
 
 
@@ -168,7 +168,7 @@ function setLoading(on) {
 btnNext.addEventListener('click', () => {
   const val = emailInput.value.trim();
   if (!val || !isValidEmail(val)) {
-    applyFieldState(emailInput, emailMsg, 'invalid', 'Ingresa un correo válido primero.');
+    applyFieldState(emailInput, emailMsg, 'invalid', ENV.MSG.EMAIL_REQUIRED);
     return;
   }
   
@@ -199,7 +199,7 @@ btnBack.addEventListener('click', () => {
       stepEmail.classList.add('active');
       emailInput.focus();
     }, 20);
-  }, 400);
+  }, ENV.TIMING.STEP_TRANSITION);
 });
 
 
@@ -217,7 +217,7 @@ form.addEventListener('submit', async (e) => {
 
   // Paso 2: Validar contraseña
   if (!validatePassword()) {
-    showToast('Corrige tu contraseña.', 'error', '⚠');
+    showToast(ENV.MSG.PASS_FIX, 'error', '⚠');
     return;
   }
 
@@ -234,15 +234,15 @@ form.addEventListener('submit', async (e) => {
     btnSubmit.style.background = 'rgba(255,255,255,0.1)';
     btnSubmit.style.border = '1px solid rgba(34, 197, 94, 0.4)';
     
-    showToast('Autenticación Biométrica Exitosa', 'success', '✓');
+    showToast(ENV.MSG.LOGIN_SUCCESS, 'success', '✓');
 
     // Redirigir al dashboard después de un momento
     setTimeout(() => {
-      window.location.href = '../dashboard/index.html';
-    }, 1500);
+      window.location.href = ENV.ROUTES.DASHBOARD;
+    }, ENV.TIMING.REDIRECT_DELAY);
   } catch (err) {
-    showToast(err.message || 'Credenciales incorrectas.', 'error', '✕');
-    applyFieldState(passInput, passMsg, 'invalid', 'Verifica tu contraseña.');
+    showToast(err.message || ENV.MSG.LOGIN_FAIL, 'error', '✕');
+    applyFieldState(passInput, passMsg, 'invalid', ENV.MSG.PASS_VERIFY);
   } finally {
     setLoading(false);
   }
@@ -256,11 +256,11 @@ function simulateServerCall(creds) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (creds.password === 'error123') {
-        reject(new Error('Credenciales incorrectas. Verifica tus datos.'));
+        reject(new Error(ENV.MSG.LOGIN_FAIL));
       } else {
         resolve({ token: 'demo-jwt', user: creds.email });
       }
-    }, 1800);
+    }, ENV.TIMING.SERVER_LATENCY);
   });
 }
 
@@ -321,7 +321,6 @@ if (window.matchMedia('(pointer: fine)').matches) {
    (Performance optimizado con requestAnimationFrame)
 ═══════════════════════════════════════════════════════ */
 if (window.matchMedia('(pointer: fine)').matches) {
-  const layout = document.querySelector('.layout');
   
   const spot = document.createElement('div');
   spot.className = 'cursor-spot';
