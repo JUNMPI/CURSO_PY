@@ -694,8 +694,13 @@ body {
   border-color: #22c55e;
   background: rgba(34, 197, 94, 0.08);
 }
+.field__input.is-valid + .field__label,
+.field__input.is-valid:focus + .field__label {
+  color: #22c55e;
+}
 
-.field__input.is-valid + .field__label {
+.field__input.is-valid + .field__label .field__icon,
+.field__input.is-valid:focus + .field__label .field__icon {
   color: #22c55e;
 }
 
@@ -705,7 +710,13 @@ body {
   animation: shake 0.4s var(--ease);
 }
 
-.field__input.is-invalid + .field__label {
+.field__input.is-invalid + .field__label,
+.field__input.is-invalid:focus + .field__label {
+  color: var(--fpf);
+}
+
+.field__input.is-invalid + .field__label .field__icon,
+.field__input.is-invalid:focus + .field__label .field__icon {
   color: var(--fpf);
 }
 

@@ -235,6 +235,11 @@ form.addEventListener('submit', async (e) => {
     btnSubmit.style.border = '1px solid rgba(34, 197, 94, 0.4)';
     
     showToast('Autenticación Biométrica Exitosa', 'success', '✓');
+
+    // Redirigir al dashboard después de un momento
+    setTimeout(() => {
+      window.location.href = '../dashboard/index.html';
+    }, 1500);
   } catch (err) {
     showToast(err.message || 'Credenciales incorrectas.', 'error', '✕');
     applyFieldState(passInput, passMsg, 'invalid', 'Verifica tu contraseña.');
